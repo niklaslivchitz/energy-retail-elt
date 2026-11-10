@@ -1,0 +1,32 @@
+# Copy to profiles.yml (same folder) and fill in your values.
+# profiles.yml is gitignored. dbt finds it automatically when you run
+# dbt from inside this dbt/ folder.
+#
+# Check the connection with:  dbt debug
+
+energy_retail:
+  target: dev
+  outputs:
+    # Your personal sandbox. `dbt build` goes here by default.
+    dev:
+      type: bigquery
+      method: service-account
+      project: your-gcp-project-id
+      dataset: dbt_niklas            # created automatically on first run
+      keyfile: C:/path/to/energy-retail-elt/secrets/dbt-sa.json   # forward slashes work on Windows
+      location: EU                   # must match the location of the energy_retail_raw dataset
+      threads: 4
+      job_execution_timeout_seconds: 300
+      priority: interactive
+
+    # "Production": what the dashboard reads. `dbt build --target prod`
+    prod:
+      type: bigquery
+      method: service-account
+      project: your-gcp-project-id
+      dataset: analytics
+      keyfile: C:/path/to/energy-retail-elt/secrets/dbt-sa.json
+      location: EU
+      threads: 4
+      job_execution_timeout_seconds: 300
+      priority: interactive

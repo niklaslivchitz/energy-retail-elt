@@ -1,0 +1,6 @@
+# Keep Unix line endings for files that run inside Linux containers.
+# A Windows CRLF in a .sh init script makes it fail inside the MySQL container.
+* text=auto
+*.sh text eol=lf
+*.sql text eol=lf
+*.yml text eol=lf

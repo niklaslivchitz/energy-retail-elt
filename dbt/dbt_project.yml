@@ -1,0 +1,27 @@
+name: energy_retail
+version: "1.0.0"
+profile: energy_retail
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:
+  - target
+  - dbt_packages
+
+# Layer defaults. Individual models can override these in their own config.
+models:
+  energy_retail:
+    staging:
+      # 1:1 with source tables: rename, cast, light cleanup. Cheap views.
+      +materialized: view
+    intermediate:
+      # Reusable building blocks between staging and marts.
+      +materialized: view
+    marts:
+      # What BI tools read: the star schema. Tables, so dashboards are fast.
+      +materialized: table
