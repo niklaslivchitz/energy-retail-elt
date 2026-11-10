@@ -53,4 +53,6 @@ Setup steps: coming soon.
 
 ## Design decisions
 
-Filled in as the project progresses.
+**Why the source database runs in Docker.** The MySQL database stands in for the supplier's production system, so it should behave like one: a fixed version (MySQL 8.4), its own settings, and nothing installed on my laptop that could clash with other projects. Docker gives exactly that. `docker-compose.yml` describes the whole setup in one file: the MySQL version, the port, the binlog settings that change data capture needs, and a volume so the data survives restarts. Anyone can start the same database with `docker compose up -d`, and `docker compose down -v` resets it to empty. Airbyte runs in Docker too, so the whole extract and load side stays off the host system.
+
+More decisions are added as the project progresses.
