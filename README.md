@@ -31,10 +31,10 @@ The supplier is invented, so customers, delivery points, contracts, tariffs and 
 
 Consumption is based on real sources:
 
-- [BDEW standard load profiles](https://www.bdew.de/energie/standardlastprofile-strom/), which German suppliers use for customers without a smart meter.
-- 15-minute readings from 38 households with heat pumps in Lower Saxony, 2019, from the [WPuQ dataset](https://zenodo.org/records/5642902) (CC BY 4.0). They are the supplier's smart meter customers on a heat pump tariff.
+- 15-minute readings from 37 houses with heat pumps in Lower Saxony, 2019, from the [WPuQ dataset](https://zenodo.org/records/5642902) (CC BY 4.0). They are the supplier's smart meter customers. Each house has two meters, one for the household and one for the heat pump. Only 2019 is used, so the same year repeats for every year of history. Seven houses have gaps in their readings; these are kept, and the dbt tests have to deal with them.
+- [BDEW standard load profiles](https://www.bdew.de/energie/standardlastprofile-strom/), which German suppliers use for customers without a smart meter. These customers get one meter reading per year, and the profile spreads their annual consumption over months.
 
-A simulator keeps adding activity on top, so the pipeline handles changing data rather than a static file.
+A simulator keeps adding activity on top, one simulated day per tick, so the pipeline handles changing data rather than a static file.
 
 ## Repository layout
 
@@ -54,5 +54,11 @@ Setup steps: coming soon.
 ## Design decisions
 
 **Why the source database runs in Docker.** The MySQL database stands in for the supplier's production system, so it should behave like one: a fixed version (MySQL 8.4), its own settings, and nothing installed on my laptop that could clash with other projects. Docker gives exactly that. `docker-compose.yml` describes the whole setup in one file: the MySQL version, the port, the binlog settings that change data capture needs, and a volume so the data survives restarts. Anyone can start the same database with `docker compose up -d`, and `docker compose down -v` resets it to empty. Airbyte runs in Docker too, so the whole extract and load side stays off the host system.
+
+**Why only smart meters have 15-minute readings.** A supplier does not measure most customers every 15 minutes. Their meter is read about once a year, and a standard load profile estimates when the energy was used. The source database follows that: yearly counter readings for profile customers, 15-minute readings for the smart meters only. It also keeps the data small. Interval readings for every meter over three years would be about 630 million rows.
+
+**Why the load profiles are a dbt seed.** The BDEW profiles are fixed reference data, not something the supplier's system creates or changes. So they are not in MySQL and do not pass through Airbyte. They sit in the dbt project as a small CSV and are joined in when annual consumption is spread over months.
+
+**Why the simulator has its own clock.** Contracts, readings and invoices change over days and weeks. In real time nothing would happen during a test run, so one simulator tick stands for one day. The `updated_at` column still records the real time of each change, because incremental syncs depend on it.
 
 More decisions are added as the project progresses.
